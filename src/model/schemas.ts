@@ -1,0 +1,10 @@
+import mongoose from "mongoose";
+const { Schema } = mongoose;
+
+const wordSchema = new Schema({
+  word: String,
+  translate: String,
+  definition: String,
+});
+
+export const Word = mongoose.model("Word", wordSchema);
