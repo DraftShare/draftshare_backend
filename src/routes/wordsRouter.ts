@@ -5,3 +5,4 @@ export const router = Router();
 
 router.get("/words", wordsController.getAll);
 router.post("/words", wordsController.addOne);
+router.delete("/words", wordsController.delete);
