@@ -15,7 +15,7 @@ class wordsController {
       const rawData = await Word.find();
 
       const data: DataItem[] = rawData.map((doc) => ({
-        id: doc._id.toString(),
+        id: doc.id,
         word: doc.word,
         translate: doc.translate,
         definition: doc.definition,
@@ -34,7 +34,7 @@ class wordsController {
       translate: req.body.translate,
       definition: req.body.definition,
     });
-    res.json(newWord);
+    res.json({ id: newWord.id, ...newWord.toJSON() });
   }
 
   async delete(req: Request, res: Response) {
