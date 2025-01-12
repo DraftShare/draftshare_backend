@@ -17,6 +17,7 @@ class wordsController {
       const data: DataItem[] = rawData.map((doc) => ({
         id: doc.id,
         word: doc.word,
+        transcription: doc.transcription,
         translate: doc.translate,
         definition: doc.definition,
       }));
@@ -31,6 +32,7 @@ class wordsController {
   async addOne(req: Request, res: Response) {
     const newWord = await Word.create({
       word: req.body.word,
+      transcription: req.body.transcription,
       translate: req.body.translate,
       definition: req.body.definition,
     });

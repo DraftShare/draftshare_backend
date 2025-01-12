@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const wordSchema = new Schema({
   word: String,
+  transcription: String,
   translate: String,
   definition: String,
 });
