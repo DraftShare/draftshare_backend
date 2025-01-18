@@ -6,6 +6,6 @@ const wordSchema = new Schema({
   transcription: String,
   translate: String,
   definition: String,
-});
+}, {strict: false});
 
 export const Word = mongoose.model("Word", wordSchema);

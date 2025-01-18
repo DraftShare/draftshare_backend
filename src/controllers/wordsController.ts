@@ -12,15 +12,14 @@ interface DataItem {
 class wordsController {
   async getAll(req: Request, res: Response) {
     try {
-      const rawData = await Word.find();
+      const rawData = await Word.find().select({ __v: 0 });
 
       const data: DataItem[] = rawData.map((doc) => ({
         id: doc.id,
         word: doc.word,
-        transcription: doc.transcription,
-        translate: doc.translate,
-        definition: doc.definition,
+        ...doc.toObject(),
       }));
+
       const normalizedData = normalizeData(data);
       res.json(normalizedData);
     } catch (error) {
@@ -30,13 +29,15 @@ class wordsController {
   }
 
   async addOne(req: Request, res: Response) {
-    const newWord = await Word.create({
-      word: req.body.word,
-      transcription: req.body.transcription,
-      translate: req.body.translate,
-      definition: req.body.definition,
-    });
-    res.json({ id: newWord.id, ...newWord.toJSON() });
+    // const newWord = await Word.create({
+    //   word: req.body.word,
+    //   transcription: req.body.transcription,
+    //   translate: req.body.translate,
+    //   definition: req.body.definition,
+    // });
+    // console.log(req.body);
+    const newWord = await Word.create(req.body);
+    res.json({ id: newWord.id});
   }
 
   async delete(req: Request, res: Response) {

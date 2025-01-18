@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    image: frozenjerboa/dictionary-backend:latest
+    ports:
+      - "8081:8081"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/dictionary_db
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
