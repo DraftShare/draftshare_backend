@@ -4,6 +4,8 @@ FROM node:18
 # Устанавливаем рабочую директорию
 WORKDIR /usr/src/app
 
+RUN mkdir -p /usr/src/app/logs
+
 # Копируем файлы package.json и package-lock.json
 COPY package*.json ./
 
@@ -20,4 +22,4 @@ COPY . .
 EXPOSE 8081
 
 # Запуск приложения
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]

@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { Word } from "../model/schemas.js";
 import { normalizeData } from "../lib/normalizeData.js";
+import { log } from "../lib/log.js";
 
 interface DataItem {
   id: string;
@@ -12,6 +13,7 @@ interface DataItem {
 class wordsController {
   async getAll(req: Request, res: Response) {
     try {
+      log(`Fetched words:  items`);
       const rawData = await Word.find().select({ __v: 0 });
 
       const data: DataItem[] = rawData.map((doc) => ({
@@ -23,8 +25,15 @@ class wordsController {
       const normalizedData = normalizeData(data);
       res.json(normalizedData);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to fetch data" });
+      if (error instanceof Error) {
+        log(`Error in GET /api/words: ${error.message}`);
+        log(`Stack trace: ${error.stack}`);
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch data" });
+      } else {
+        log(`Unknown error occurred: ${String(error)}`);
+        res.status(500).json({ error: "An unknown error occurred" });
+      }
     }
   }
 
@@ -37,7 +46,7 @@ class wordsController {
     // });
     // console.log(req.body);
     const newWord = await Word.create(req.body);
-    res.json({ id: newWord.id});
+    res.json({ id: newWord.id });
   }
 
   async delete(req: Request, res: Response) {

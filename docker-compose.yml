@@ -4,7 +4,7 @@ services:
   app:
     image: frozenjerboa/dictionary-backend:latest
     ports:
-      - "8081:8081"
+      - "7829:7829"
     environment:
       MONGO_URI: mongodb://mongo:27017/dictionary_db
     depends_on:
