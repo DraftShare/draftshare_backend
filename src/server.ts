@@ -4,8 +4,13 @@ import cors from "cors";
 import "dotenv/config";
 import { router } from "./routes/index.js";
 import { authenticate } from "./middlewares/authentication.js";
-import "dotenv/config";
 import { log } from "./lib/log.js";
+import {
+  authMiddleware,
+  defaultErrorMiddleware,
+  showInitDataMiddleware,
+} from "./controllers/authController.js";
+import { userMiddleware } from "./middlewares/user.js";
 
 const app = express();
 const port = 7829;
@@ -13,7 +18,11 @@ const port = 7829;
 app.use(express.json());
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://flying-squirrel.duckdns.org"],
+  origin: [
+    "http://localhost:3000",
+    "http://172.29.64.119:3000",
+    "https://flying-squirrel.duckdns.org",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -21,26 +30,19 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-log("Server started");
-
-// Логирование входящих запросов
-app.use((req, res, next) => {
-  log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
-
-// Логирование ошибок
-process.on("uncaughtException", (err) => {
-  log(`Uncaught Exception: ${err.message}`);
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  log(`Unhandled Rejection: ${reason}`);
-});
+app.use(authMiddleware);
+// app.get('/api/words', showInitDataMiddleware);
+app.use(userMiddleware);
+app.use("/", router);
+app.use(defaultErrorMiddleware);
 
 // app.use("/api/word",authenticate);
-app.use("/", router);
+// app.use("/auth/telegram", (req, res) => {
+//   res.send("hi");
+// });
+
+// app.get('/auth', showInitDataMiddleware);
+// app.use(defaultErrorMiddleware);
 
 async function connectBD() {
   try {

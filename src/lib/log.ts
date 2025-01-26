@@ -24,3 +24,24 @@ export const log = (message: string) => {
   const timestamp = new Date().toISOString();
   logStream.write(`${timestamp} - ${message}\n`);
 };
+
+
+
+
+// log("Server started");
+
+// // Логирование входящих запросов
+// app.use((req, res, next) => {
+//   log(`Incoming request: ${req.method} ${req.url}`);
+//   next();
+// });
+
+// // Логирование ошибок
+// process.on("uncaughtException", (err) => {
+//   log(`Uncaught Exception: ${err.message}`);
+//   process.exit(1);
+// });
+
+// process.on("unhandledRejection", (reason, promise) => {
+//   log(`Unhandled Rejection: ${reason}`);
+// });
