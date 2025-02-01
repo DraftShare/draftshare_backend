@@ -117,16 +117,20 @@
 
 // export default new AuthController();
 
-
-import { validate, parse, InitData, isValid } from '@telegram-apps/init-data-node';
+import {
+  validate,
+  parse,
+  InitData,
+  isValid,
+} from "@telegram-apps/init-data-node";
 import express, {
   type ErrorRequestHandler,
   type RequestHandler,
   type Response,
-} from 'express';
+} from "express";
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) throw new Error("Bot token not found");
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) throw new Error("Bot token not found");
 
 function setInitData(res: Response, initData: InitData): void {
   res.locals.initData = initData;
@@ -137,10 +141,12 @@ export function getInitData(res: Response): InitData | undefined {
 }
 
 export const authMiddleware: RequestHandler = (req, res, next) => {
-  const [authType, authData = ''] = (req.header('authorization') || '').split(' ');
+  const [authType, authData = ""] = (req.header("authorization") || "").split(
+    " "
+  );
 
   switch (authType) {
-    case 'tma':
+    case "tma":
       try {
         validate(authData, token, {
           // We consider init data sign valid for 1 hour from their creation moment.
@@ -152,23 +158,35 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
       } catch (e) {
         return next(e);
       }
+    case "test":
+      if (process.env.NODE_ENV === "development") {
+        setInitData(res, {
+          authDate: new Date(),
+          hash: "abc",
+          signature: "zxy",
+          user: {
+            id: 1,
+            firstName: "Bob",
+            username: "BB",
+          },
+        });
+        console.log(getInitData(res)?.user?.id)
+        return next();
+      }
+
     // ... other authorization methods.
     default:
-      return next(new Error('Unauthorized'));
+      return next(new Error("Unauthorized"));
   }
 };
 
 export const showInitDataMiddleware: RequestHandler = (_req, res, next) => {
   const initData = getInitData(res);
   if (!initData) {
-    return next(new Error('Cant display init data as long as it was not found'));
+    return next(
+      new Error("Cant display init data as long as it was not found")
+    );
   }
   res.json(initData);
-};
-
-export const defaultErrorMiddleware: ErrorRequestHandler = (err, _req, res, next) => {
-  res.status(500).json({
-    error: err.message,
-  });
 };
 

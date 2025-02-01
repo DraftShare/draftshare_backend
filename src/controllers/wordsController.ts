@@ -1,7 +1,8 @@
-import express, { Request, Response } from "express";
-import { Word } from "../model/schemas.js";
+import express, { NextFunction, Request, Response } from "express";
+import { User, Word } from "../model/schemas.js";
 import { normalizeData } from "../lib/normalizeData.js";
-import { log } from "../lib/log.js";
+import { getInitData } from "./authController.js";
+import { BadRequest, NotFound } from "../utils/errors.js";
 
 interface DataItem {
   id: string;
@@ -10,11 +11,28 @@ interface DataItem {
   definition?: string | null | undefined;
 }
 
+async function getUser(res: Response) {
+  const tgId = getInitData(res)?.user?.id;
+  if (!tgId) {
+    throw new BadRequest("User ID (tgId) is missing");
+  }
+
+  const user = await User.findOne({ tgId }).exec();
+  if (!user) {
+    throw new NotFound("User not found");
+  }
+  return user;
+}
+
 class wordsController {
-  async getAll(req: Request, res: Response) {
+  async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      log(`Fetched words:  items`);
-      const rawData = await Word.find().select({ __v: 0 });
+      const user = await getUser(res);
+      const rawData = await Word.find({
+        author: user._id,
+      })
+        .select({ __v: 0 })
+        .exec();
 
       const data: DataItem[] = rawData.map((doc) => ({
         id: doc.id,
@@ -25,35 +43,39 @@ class wordsController {
       const normalizedData = normalizeData(data);
       res.json(normalizedData);
     } catch (error) {
-      if (error instanceof Error) {
-        log(`Error in GET /api/words: ${error.message}`);
-        log(`Stack trace: ${error.stack}`);
-        console.error(error);
-        res.status(500).json({ error: "Failed to fetch data" });
-      } else {
-        log(`Unknown error occurred: ${String(error)}`);
-        res.status(500).json({ error: "An unknown error occurred" });
-      }
+      next(error);
     }
   }
 
-  async addOne(req: Request, res: Response) {
-    // const newWord = await Word.create({
-    //   word: req.body.word,
-    //   transcription: req.body.transcription,
-    //   translate: req.body.translate,
-    //   definition: req.body.definition,
-    // });
-    // console.log(req.body);
-    const newWord = await Word.create(req.body);
-    res.json({ id: newWord.id });
+  async addOne(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await getUser(res);
+      if (!req.body.word) {
+        throw new BadRequest("Word is required");
+      }
+      const newWord = await Word.create({ ...req.body, author: user._id });
+      res.status(201).json({ id: newWord.id });
+    } catch (error) {
+      next(error);
+    }
   }
 
-  async delete(req: Request, res: Response) {
-    const ids: string[] = req.body.ids;
-    const result = await Word.deleteMany({ _id: { $in: ids } });
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const ids: string[] = req.body.ids;
+      if (!ids || ids.length === 0) {
+        throw new BadRequest("No IDs provided");
+      }
+      const user = await getUser(res);
 
-    res.json(result);
+      const result = await Word.deleteMany({ _id: { $in: ids }, author: user });
+      if (result.deletedCount === 0) {
+        throw new NotFound("No words found to delete");
+      }
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
   }
 }
 

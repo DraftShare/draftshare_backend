@@ -7,6 +7,7 @@ const wordSchema = new Schema(
     transcription: String,
     translate: String,
     definition: String,
+    author: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { strict: false }
 );
@@ -14,6 +15,7 @@ const wordSchema = new Schema(
 const userSchema = new Schema({
   tgId: String,
   username: String,
+  words: [{ type: Schema.Types.ObjectId, ref: "Word" }],
 });
 
 export const Word = mongoose.model("Word", wordSchema);
