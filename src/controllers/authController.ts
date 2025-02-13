@@ -150,7 +150,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
       try {
         validate(authData, token, {
           // We consider init data sign valid for 1 hour from their creation moment.
-          expiresIn: 3600,
+          // expiresIn: 3600,
         });
 
         setInitData(res, parse(authData));
