@@ -10,7 +10,7 @@ import { InternalServerError } from "./utils/errors.js";
 import { connectBD } from "./middlewares/connectBD.js";
 
 const app = express();
-const port = 7829;
+const port = process.env.PORT || 7829;
 
 app.use(express.json());
 

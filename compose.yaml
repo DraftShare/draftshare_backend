@@ -1,0 +1,60 @@
+
+services:
+  mongo1:
+    container_name: mongo1
+    image: mongo
+    volumes:
+      - ~/mongors/data1:/data/db
+      - ./rs-init.sh:/scripts/rs-init.sh
+    networks:
+      - mongors-network
+    ports:
+      - 27021:27017
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+
+  mongo2:
+    container_name: mongo2
+    image: mongo
+    volumes:
+      - ~/mongors/data2:/data/db
+    networks:
+      - mongors-network
+    ports:
+      - 27022:27017
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+
+  mongo3:
+    container_name: mongo3
+    image: mongo
+    volumes:
+      - ~/mongors/data3:/data/db
+    networks:
+      - mongors-network
+    ports:
+      - 27023:27017
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+
+  nodejs:
+    container_name: nodejs
+    build: .
+    # volumes:
+    #   - .:/usr/src/app
+    #   - /usr/src/app/node_modules
+    env_file: ".env"
+
+    networks:
+      - mongors-network
+    ports:
+      - 7829:7829
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    restart: always
+
+networks:
+  mongors-network:
+    driver: bridge

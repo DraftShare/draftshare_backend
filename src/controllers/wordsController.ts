@@ -1,16 +1,16 @@
 import express, { NextFunction, Request, Response } from "express";
 import { User, Word, WordProperty } from "../model/schemas.js";
-import { normalizeData } from "../lib/normalizeData.js";
+import { DataItem, normalizeData } from "../lib/normalizeData.js";
 import { getInitData } from "./authController.js";
 import { BadRequest, NotFound } from "../utils/errors.js";
 import mongoose from "mongoose";
 
-interface DataItem {
-  id: string;
-  word?: string | null | undefined;
-  translate?: string | null | undefined;
-  definition?: string | null | undefined;
-}
+// interface DataItem {
+//   _id: string;
+//   word?: string | null | undefined;
+//   translate?: string | null | undefined;
+//   definition?: string | null | undefined;
+// }
 
 async function getUser(res: Response) {
   const tgId = getInitData(res)?.user?.id;
@@ -37,13 +37,14 @@ class wordsController {
       const rawData = await Word.find({
         author: user._id,
       })
+        .populate("properties", {__v: 0})
         .select({ __v: 0 })
         .exec();
 
       const data: DataItem[] = rawData.map((doc) => {
         const { _id, author, ...rest } = doc.toObject();
         return {
-          id: doc.id,
+          _id: doc.id,
           word: doc.word,
           properties: doc.properties,
           // ...rest,
@@ -113,13 +114,14 @@ class wordsController {
     session.startTransaction();
     try {
       const user = await getUser(res);
-      if (!req.body.word || !req.body.id) {
+      if (!req.body.word || !req.body._id) {
         throw new BadRequest("Word and ID are required");
       }
 
-      const data = clearingReqBody(req);
+      // const data = clearingReqBody(req);
+      const data = req.body;
       const word = await Word.findOne({
-        _id: data.id,
+        _id: data._id,
         author: user._id,
       }).session(session);
       if (!word) {
@@ -135,7 +137,7 @@ class wordsController {
         existingProps.map((prop) => prop._id.toString())
       );
       const newPropIds = new Set(
-        data.properties.map((prop: { id: string }) => prop.id)
+        data.properties.map((prop: { _id: string }) => prop._id)
       );
 
       const propsToDelete = [...existingPropIds].filter(
@@ -148,11 +150,11 @@ class wordsController {
       }
 
       const bulkOps = data.properties.map(
-        (prop: { id: string; name: string; value: string }) => {
-          if (existingPropIds.has(prop.id)) {
+        (prop: { _id: string; name: string; value: string }) => {
+          if (existingPropIds.has(prop._id)) {
             return {
               updateOne: {
-                filter: { _id: prop.id },
+                filter: { _id: prop._id },
                 update: { name: prop.name, value: prop.value },
               },
             };

@@ -1,5 +1,5 @@
-type DataItem = {
-  id: string;
+export type DataItem = {
+  _id: string;
   [key: string]: any;
 };
 
@@ -12,7 +12,7 @@ type NormalizedData = {
 
 export function normalizeData(dataArray: DataItem[]): NormalizedData {
   return dataArray.reduce((acc, obj) => {
-    acc[obj.id] = obj;
+    acc[obj._id] = obj;
     return acc;
   }, {} as NormalizedData);
 }

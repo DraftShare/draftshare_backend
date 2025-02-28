@@ -1,25 +1,15 @@
-# Используем официальный образ Node.js для приложения
-FROM node:18
+FROM node:lts-alpine
 
-# Устанавливаем рабочую директорию
 WORKDIR /usr/src/app
 
 RUN mkdir -p /usr/src/app/logs
 
-# Копируем файлы package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
 RUN npm install
 
-# Копируем остальные файлы приложения
 COPY . .
 
-# Компилируем TypeScript (если нужно)
-# RUN npm run build
-
-# Указываем порт, который будет слушать приложение
 EXPOSE 8081
 
-# Запуск приложения
 CMD ["npm", "run", "start"]
