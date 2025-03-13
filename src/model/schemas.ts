@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-// const wordSchema = new Schema(
+// const cardSchema = new Schema(
 //   {
 //     word: String,
 //     transcription: String,
@@ -12,26 +12,30 @@ const { Schema } = mongoose;
 //   { strict: false }
 // );
 
-const wordSchema = new Schema(
-  {
-    word: String,
-    author: { type: Schema.Types.ObjectId, ref: "User" },
-    properties: [{type: Schema.Types.ObjectId, ref: "WordProperty"}]
-  },
-);
+const cardSchema = new Schema({
+  author: { type: Schema.Types.ObjectId, ref: "User" },
+  properties: [{ type: Schema.Types.ObjectId, ref: "CardProperty" }],
+});
 
-const wordPropertySchema = new Schema({
-  word: {type: Schema.Types.ObjectId, ref: "Word"},
+const propertySchema = new Schema({
   name: String,
+  cardProperties: [{ type: Schema.Types.ObjectId, ref: "CardProperty" }],
+  author: { type: Schema.Types.ObjectId, ref: "User" },
+});
+
+const cardPropertySchema = new Schema({
+  card: { type: Schema.Types.ObjectId, ref: "Card" },
+  property: { type: Schema.Types.ObjectId, ref: "Property" },
   value: String,
 });
 
 const userSchema = new Schema({
   tgId: String,
   username: String,
-  words: [{ type: Schema.Types.ObjectId, ref: "Word" }],
+  cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],
 });
 
-export const Word = mongoose.model("Word", wordSchema);
-export const WordProperty = mongoose.model("WordProperty", wordPropertySchema);
+export const Card = mongoose.model("Card", cardSchema);
+export const Property = mongoose.model("Property", propertySchema);
+export const CardProperty = mongoose.model("CardProperty", cardPropertySchema);
 export const User = mongoose.model("User", userSchema);

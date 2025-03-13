@@ -1,9 +1,11 @@
 import express, { NextFunction, Request, Response } from "express";
-import { User, Word, WordProperty } from "../model/schemas.js";
-import { DataItem, normalizeData } from "../lib/normalizeData.js";
-import { getInitData } from "./authController.js";
-import { BadRequest, NotFound } from "../utils/errors.js";
-import mongoose from "mongoose";
+import { Card, CardProperty, Property, User } from "../../model/schemas.js";
+import { DataItem, normalizeData } from "../../lib/normalizeData.js";
+import { getInitData } from "../authController.js";
+import { BadRequest, InternalServerError, NotFound } from "../../utils/errors.js";
+import mongoose, { Document, Types } from "mongoose";
+import { addCardSchema } from "../../types/zod.js";
+import { addOne } from "./add-one.js";
 
 // interface DataItem {
 //   _id: string;
@@ -34,10 +36,10 @@ class wordsController {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await getUser(res);
-      const rawData = await Word.find({
+      const rawData = await Card.find({
         author: user._id,
       })
-        .populate("properties", {__v: 0})
+        .populate("properties", { __v: 0 })
         .select({ __v: 0 })
         .exec();
 
@@ -45,7 +47,6 @@ class wordsController {
         const { _id, author, ...rest } = doc.toObject();
         return {
           _id: doc.id,
-          word: doc.word,
           properties: doc.properties,
           // ...rest,
         };
@@ -58,57 +59,77 @@ class wordsController {
     }
   }
 
-  async addOne(req: Request, res: Response, next: NextFunction) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
+async addOne(req: Request, res: Response, next: NextFunction) {
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
       const user = await getUser(res);
-      if (!req.body.word) {
-        throw new BadRequest("Word is required");
+
+      const incoming = addCardSchema.safeParse(clearingReqBody(req));
+      if (!incoming.success) {
+        throw new BadRequest("Incorrect data was received");
       }
-      const data = clearingReqBody(req);
+      const data = incoming.data;
 
-      const newWord = await Word.create(
-        [
-          {
-            word: data.word,
-            author: user._id,
-          },
-        ],
-        { session }
+      const [card] = await Card.create([{ author: user._id }], { session });
+
+      await Promise.all(
+        data.properties.map(
+          async (item: {
+            name: string;
+            value: string;
+          }): Promise<{
+            card: Types.ObjectId;
+            property: Types.ObjectId;
+            value: string;
+          }> => {
+            const prop = await Property.findOneAndUpdate(
+              { name: item.name, author: user._id },
+              { name: item.name, author: user._id },
+              { upsert: true, new: true, session }
+            );
+
+            if (!prop) {
+              console.log(prop);
+              throw new InternalServerError(
+                "The property could not be found or created"
+              );
+            }
+
+            // Создаем связь между картой и свойством
+            const cardProperty = await CardProperty.create(
+              [{ card: card._id, property: prop._id, value: item.value }],
+              { session }
+            );
+
+            // Обновляем массив properties в документе Card
+            await Card.findByIdAndUpdate(
+              card._id,
+              { $push: { properties: cardProperty[0]._id } },
+              { session }
+            );
+
+            // Обновляем массив cardProperties в документе Property
+            await Property.findByIdAndUpdate(
+              prop._id,
+              { $push: { cardProperties: cardProperty[0]._id } },
+              { session }
+            );
+
+            return { card: card._id, property: prop._id, value: item.value };
+          }
+        )
       );
 
-      const propertyOps = data.properties.map(
-        (prop: { name: string; value: string }) => ({
-          insertOne: {
-            document: {
-              word: newWord[0]._id,
-              name: prop.name,
-              value: prop.value,
-            },
-          },
-        })
-      );
-      const result = await WordProperty.bulkWrite(propertyOps, { session });
-      const propertyIds = Object.values(result.insertedIds);
+      res.status(201).json({ id: card._id });
+    });
 
-      await Word.findByIdAndUpdate(
-        newWord[0]._id,
-        { properties: propertyIds },
-        { session }
-      );
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(201).json({ id: newWord[0].id });
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      next(error);
-    }
+    session.endSession();
+  } catch (error) {
+    session.endSession();
+    next(error);
   }
-
+}
   async updateOne(req: Request, res: Response, next: NextFunction) {
     const session = await mongoose.startSession();
     session.startTransaction();
