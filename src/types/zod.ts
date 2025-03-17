@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-const cardIdShcema = z.string();
+const cardIdShcema = z.number();
+const cardPropertyId = z.number();
 
-const propertyIdSchema = z.string();
+const propertyIdSchema = z.number();
 const propertyNameSchema = z.string();
 const propertyValueSchema = z.string();
 
-
-
 const addCardPropertySchema = z.object({
+  id: z.optional(cardPropertyId),
   name: propertyNameSchema,
   value: propertyValueSchema,
 });
@@ -24,4 +24,8 @@ const updatePropertySchema = z.object({
 export const updateCardSchema = z.object({
   _id: cardIdShcema,
   properties: z.array(updatePropertySchema),
+});
+
+export const deleteCardsSchema = z.object({
+  ids: z.array(cardIdShcema),
 });

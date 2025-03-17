@@ -27,7 +27,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-app.use(connectBD);
+// app.use(connectBD);
 
 app.use(authMiddleware);
 app.use(userMiddleware);

@@ -2,20 +2,31 @@ import { RequestHandler } from "express";
 import { getInitData } from "../controllers/authController.js";
 import { User } from "../model/schemas.js";
 import { BadRequest } from "../utils/errors.js";
+import { PrismaClient } from "@prisma/client";
 
 export const userMiddleware: RequestHandler = async (req, res, next) => {
+  const prisma = new PrismaClient();
+
   try {
     const initData = getInitData(res);
 
-    if (!initData) throw new BadRequest("initData is required");
+    if (!initData || !initData.user || !initData.user.username)
+      throw new BadRequest("initData is required");
 
-    let user = await User.findOne({ tgId: initData.user?.id });
-
-    if (!user)
-      user = await User.create({
+    let user = await prisma.user.findUnique({
+      where: {
         tgId: initData.user?.id,
-        username: initData.user?.username,
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          tgId: initData.user.id,
+          username: initData.user.username,
+        },
       });
+    }
 
     res.locals.userId = user.id;
 
