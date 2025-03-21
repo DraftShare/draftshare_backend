@@ -16,85 +16,64 @@ export async function update(req: Request, res: Response, next: NextFunction) {
     const data = incoming.data;
 
     await prisma.$transaction(async (tx) => {
-      const cards = await tx.card.findUnique({
+      const card = await tx.card.findUnique({
         where: {
           id: data.id,
         },
       });
-      if (!cards) {
+      if (!card) {
         throw new BadRequest(
           "Incorrect data was received: the card with the specified id was not found."
         );
       }
 
-      const existingFields = await tx.field.findMany({
-        where: {
-          author: user,
-          cards: {
-            some: {
+      for (const field of data.fieldsToDelete) {
+        await tx.cardField.delete({
+          where: {
+            cardId_authorId_name: {
               cardId: data.id,
+              authorId: user.id,
+              name: field.name,
             },
           },
-        },
-      });
+        });
+      }
 
-      const existingFieldsIds = existingFields.map((item) => item.id);
-      const incomingFieldsIds = new Set(
-        data.fields.map((field) => field.id).filter((id) => id !== undefined)
-      );
-
-      const idsFieldsToDelete = [...existingFieldsIds].filter(
-        (id) => !incomingFieldsIds.has(id)
-      );
-
-      await tx.cardField.deleteMany({
-        where: {
-          cardId: data.id,
-          fieldId: { in: idsFieldsToDelete },
-        },
-      });
-
-      let fieldsToUpdate: fieldWithId[] = [];
-      let fieldsToCreate: fieldWithoutId[] = [];
-      data.fields.forEach((field) => {
-        if (field.id) {
-          fieldsToUpdate.push({
-            name: field.name,
-            value: field.value,
-            id: field.id,
-          });
-        } else fieldsToCreate.push(field);
-      });
-
-      for (const newField of fieldsToCreate) {
-        await tx.field.create({
-          data: {
+      for (const newField of data.fieldsToUpsert) {
+        await tx.field.upsert({
+          where: {
+            authorId_name: {
+              authorId: user.id,
+              name: newField.name,
+            },
+          },
+          update: {},
+          create: {
             name: newField.name,
             author: {
               connect: {
                 id: user.id,
               },
             },
-            cards: {
-              create: {
-                cardId: data.id,
-                value: newField.value,
-              },
-            },
           },
         });
-      }
 
-      for (const field of fieldsToUpdate) {
-        await tx.cardField.update({
+        await tx.cardField.upsert({
           where: {
-            cardId_fieldId: {
-              fieldId: field.id,
+            cardId_authorId_name: {
               cardId: data.id,
+              authorId: user.id,
+              name: newField.name,
             },
           },
-          data: {
-            value: field.value,
+          update: {
+            value: newField.value,
+          },
+          create: {
+            cardId: data.id,
+            authorId: user.id,
+            name: newField.name,
+            value: newField.value,
           },
         });
       }

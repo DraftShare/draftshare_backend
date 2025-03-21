@@ -15,7 +15,11 @@ export const addCardSchema = z.object({
 
 export const updateCardSchema = z.object({
   id: cardIdShcema,
-  fields: z.array(fieldSchema),
+  // fields: z.array(fieldSchema),
+  fieldsToDelete: z.array(fieldSchema),
+  // fieldsToUpdate: z.array(fieldSchema),
+  // fieldsToCreate: z.array(fieldSchema),
+  fieldsToUpsert: z.array(fieldSchema),
 });
 
 export const deleteCardsSchema = z.object({

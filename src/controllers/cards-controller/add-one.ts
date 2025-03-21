@@ -27,8 +27,10 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
       for (const field of data.fields) {
         const newField = await tx.field.upsert({
           where: {
-            name: field.name,
-            authorId: user.id,
+            authorId_name: {
+              name: field.name,
+              authorId: user.id,
+            },
           },
           update: {
             name: field.name,
@@ -44,9 +46,10 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
         });
         await tx.cardField.create({
           data: {
-            cardId: card.id,
             name: newField.name,
             value: field.value,
+            cardId: card.id,
+            authorId: user.id,
           },
         });
       }

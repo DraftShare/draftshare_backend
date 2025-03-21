@@ -23,18 +23,21 @@ model Card {
 }
 
 model Field {
-  name     String      @unique
+  name     String
   author   User        @relation(fields: [authorId], references: [id])
   authorId Int
   cards    CardField[]
+
+  @@id([authorId, name])
 }
 
 model CardField {
-  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  cardId Int
-  field  Field  @relation(fields: [name], references: [name], onDelete: Cascade)
-  name   String
-  value  String
+  card     Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId   Int
+  field    Field  @relation(fields: [authorId, name], references: [authorId, name], onDelete: Cascade)
+  authorId Int
+  name     String
+  value    String
 
-  @@id([cardId, name])
+  @@id([cardId, authorId, name])
 }
