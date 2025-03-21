@@ -1,13 +1,10 @@
-import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import "dotenv/config";
-import { router } from "./routes/index.js";
-import { authenticate } from "./middlewares/authentication.js";
+import express from "express";
 import { authMiddleware } from "./controllers/authController.js";
+import { handleErrors } from "./middlewares/handleErrors.js";
 import { userMiddleware } from "./middlewares/user.js";
-import { handleErrors } from "./middleware/handleErrors.js";
-import { InternalServerError } from "./utils/errors.js";
-import { connectBD } from "./middlewares/connectBD.js";
+import { router } from "./routes/index.js";
 
 const app = express();
 const port = process.env.PORT || 7829;
@@ -27,7 +24,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-// app.use(connectBD);
 
 app.use(authMiddleware);
 app.use(userMiddleware);

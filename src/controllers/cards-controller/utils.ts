@@ -1,8 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { User } from "../../model/schemas.js";
+import { Request, Response } from "express";
 import { BadRequest, NotFound } from "../../utils/errors.js";
 import { getInitData } from "../authController.js";
-import express, { NextFunction, Request, Response } from "express";
 
 export async function getUser(res: Response) {
   const prisma = new PrismaClient();
@@ -23,9 +22,6 @@ export async function getUser(res: Response) {
   return user;
 }
 
-export function clearingReqBody(req: Request) {
-  const { _id, author, ...rest } = req.body;
-  return rest;
-}
+
 
 

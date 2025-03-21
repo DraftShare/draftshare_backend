@@ -1,31 +1,25 @@
 import { z } from "zod";
 
 const cardIdShcema = z.number();
-const cardPropertyId = z.number();
 
-const propertyIdSchema = z.number();
-const propertyNameSchema = z.string();
-const propertyValueSchema = z.string();
+const fieldNameSchema = z.string();
+const fieldValueSchema = z.string();
 
-const addCardPropertySchema = z.object({
-  id: z.optional(cardPropertyId),
-  name: propertyNameSchema,
-  value: propertyValueSchema,
+const fieldSchema = z.object({
+  name: fieldNameSchema,
+  value: fieldValueSchema,
 });
 export const addCardSchema = z.object({
-  properties: z.array(addCardPropertySchema),
+  fields: z.array(fieldSchema),
 });
 
-const updatePropertySchema = z.object({
-  _id: z.optional(propertyIdSchema),
-  name: propertyNameSchema,
-  value: propertyValueSchema,
-});
 export const updateCardSchema = z.object({
-  _id: cardIdShcema,
-  properties: z.array(updatePropertySchema),
+  id: cardIdShcema,
+  fields: z.array(fieldSchema),
 });
 
 export const deleteCardsSchema = z.object({
   ids: z.array(cardIdShcema),
 });
+
+export type field = z.infer<typeof fieldSchema>;

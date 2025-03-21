@@ -1,6 +1,6 @@
-import express, { NextFunction, Request, Response } from "express";
-import { getUser } from "./utils.js";
 import { PrismaClient } from "@prisma/client";
+import { NextFunction, Request, Response } from "express";
+import { getUser } from "./utils.js";
 
 export async function getAll(req: Request, res: Response, next: NextFunction) {
   const prisma = new PrismaClient();
@@ -17,14 +17,6 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
         fields: {
           omit: {
             cardId: true,
-            fieldId: true,
-          },
-          include: {
-            field: {
-              omit: {
-                authorId: true,
-              },
-            },
           },
         },
       },
@@ -33,7 +25,6 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
     type DataItem = {
       id: number;
       fields: {
-        id: number;
         name: string;
         value: string;
       }[];
@@ -43,16 +34,9 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
     };
 
     const result = cards.reduce((acc, card) => {
-      const fields = card.fields.map((field) => {
-        return {
-          id: field.field.id,
-          name: field.field.name,
-          value: field.value,
-        };
-      });
       acc[card.id] = {
         id: card.id,
-        fields: fields,
+        fields: card.fields,
       };
       return acc;
     }, {} as NormalizedData);

@@ -1,8 +1,8 @@
-import express, { NextFunction, Request, Response } from "express";
-import { getUser } from "./utils.js";
+import { PrismaClient } from "@prisma/client";
+import { NextFunction, Request, Response } from "express";
 import { deleteCardsSchema } from "../../types/zod.js";
 import { BadRequest } from "../../utils/errors.js";
-import { PrismaClient } from "@prisma/client";
+import { getUser } from "./utils.js";
 
 export async function deleteMany(
   req: Request,
@@ -19,14 +19,14 @@ export async function deleteMany(
     }
     const ids = incoming.data.ids;
 
-    const deleteCards = await prisma.card.deleteMany({
+    await prisma.card.deleteMany({
       where: {
         id: { in: ids },
         author: user,
       },
     });
 
-    res.status(204).json('');
+    res.status(204).json("");
   } catch (error) {
     next(error);
   }

@@ -1,17 +1,15 @@
-import express, { NextFunction, Request, Response } from "express";
-import mongoose, { Types } from "mongoose";
-import { clearingReqBody, getUser } from "./utils.js";
+import { PrismaClient } from "@prisma/client";
+import { NextFunction, Request, Response } from "express";
 import { addCardSchema } from "../../types/zod.js";
-import { BadRequest, InternalServerError } from "../../utils/errors.js";
-import { Card, CardProperty, Property } from "../../model/schemas.js";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { BadRequest } from "../../utils/errors.js";
+import { getUser } from "./utils.js";
 
 export async function addOne(req: Request, res: Response, next: NextFunction) {
   const prisma = new PrismaClient();
 
   try {
     const user = await getUser(res);
-    const incoming = addCardSchema.safeParse(clearingReqBody(req));
+    const incoming = addCardSchema.safeParse(req.body);
     if (!incoming.success) {
       throw new BadRequest("Incorrect data was received");
     }
@@ -26,10 +24,10 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
         },
       });
 
-      for (const field of data.properties) {
+      for (const field of data.fields) {
         const newField = await tx.field.upsert({
           where: {
-            id: field.id,
+            name: field.name,
             authorId: user.id,
           },
           update: {
@@ -47,7 +45,7 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
         await tx.cardField.create({
           data: {
             cardId: card.id,
-            fieldId: newField.id,
+            name: newField.name,
             value: field.value,
           },
         });
