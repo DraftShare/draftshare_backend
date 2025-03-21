@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { updateCardSchema } from "../../types/zod.js";
 import { BadRequest } from "../../utils/errors.js";
-import { getUser } from "./utils.js";
+import { getUser } from "../utils.js";
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   const prisma = new PrismaClient();

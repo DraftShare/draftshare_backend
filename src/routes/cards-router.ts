@@ -6,7 +6,7 @@ import { update } from "../controllers/cards-controller/update.js";
 
 export const router = Router();
 
-router.get("/words", getAll);
-router.post("/words", addOne);
-router.patch("/words", update);
-router.delete("/words", deleteMany);
+router.get("/cards", getAll);
+router.post("/cards", addOne);
+router.patch("/cards", update);
+router.delete("/cards", deleteMany);

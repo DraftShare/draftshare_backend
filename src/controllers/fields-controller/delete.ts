@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
-import { deleteCardsSchema } from "../../types/zod.js";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
+import { deleteFieldsSchema } from "./types.js";
 
 export async function deleteMany(
   req: Request,
@@ -13,15 +13,15 @@ export async function deleteMany(
 
   try {
     const user = await getUser(res);
-    const incoming = deleteCardsSchema.safeParse(req.body);
+    const incoming = deleteFieldsSchema.safeParse(req.body);
     if (!incoming.success) {
       throw new BadRequest("Incorrect data was received");
     }
-    const ids = incoming.data.ids;
+    const names = incoming.data.names;
 
-    await prisma.card.deleteMany({
+    await prisma.field.deleteMany({
       where: {
-        id: { in: ids },
+        name: { in: names },
         author: user,
       },
     });

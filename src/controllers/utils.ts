@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { BadRequest, NotFound } from "../../utils/errors.js";
-import { getInitData } from "../authController.js";
+import { BadRequest, NotFound } from "../utils/errors.js";
+import { getInitData } from "./authController.js";
 
 export async function getUser(res: Response) {
   const prisma = new PrismaClient();

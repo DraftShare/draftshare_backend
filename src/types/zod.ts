@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const cardIdShcema = z.number();
 
-const fieldNameSchema = z.string();
+export const fieldNameSchema = z.string();
 const fieldValueSchema = z.string();
 
 const fieldSchema = z.object({
