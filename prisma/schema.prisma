@@ -9,8 +9,8 @@ datasource db {
 
 model User {
   id       Int     @id @default(autoincrement())
-  tgId     Int     @unique
-  username String  @unique
+  tgId     String     @unique
+  // username String  @unique
   cards    Card[]
   fields   Field[]
 }

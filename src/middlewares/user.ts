@@ -9,24 +9,35 @@ export const userMiddleware: RequestHandler = async (req, res, next) => {
 
   try {
     const initData = getInitData(res);
-
-    if (!initData || !initData.user || !initData.user.username)
+    if (!initData || !initData.user) {
       throw new BadRequest("initData is required");
+    }
 
-    let user = await prisma.user.findUnique({
+    // let user = await prisma.user.findUnique({
+    //   where: {
+    //     tgId: initData.user?.id,
+    //   },
+    // });
+
+    // if (!user) {
+    //   user = await prisma.user.create({
+    //     data: {
+    //       tgId: initData.user.id,
+    //       // username: initData.user.username,
+    //     },
+    //   });
+    // }
+
+    const user = await prisma.user.upsert({
       where: {
-        tgId: initData.user?.id,
+        tgId: String(initData.user?.id),
+      },
+      update: {},
+      create: {
+        tgId: String(initData.user?.id),
+        // username: initData.user.username,
       },
     });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          tgId: initData.user.id,
-          username: initData.user.username,
-        },
-      });
-    }
 
     res.locals.userId = user.id;
 

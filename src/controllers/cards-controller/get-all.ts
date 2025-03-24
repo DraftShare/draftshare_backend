@@ -4,7 +4,6 @@ import { getUser } from "../utils.js";
 
 export async function getAll(req: Request, res: Response, next: NextFunction) {
   const prisma = new PrismaClient();
-
   try {
     const user = await getUser(res);
 

@@ -6,7 +6,7 @@ import { getInitData } from "./authController.js";
 export async function getUser(res: Response) {
   const prisma = new PrismaClient();
 
-  const tgId = getInitData(res)?.user?.id;
+  const tgId = String(getInitData(res)?.user?.id);
   if (!tgId) {
     throw new BadRequest("User ID (tgId) is missing");
   }
@@ -21,7 +21,3 @@ export async function getUser(res: Response) {
   }
   return user;
 }
-
-
-
-
