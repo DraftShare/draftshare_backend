@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
-import { updateCardSchema } from "../../types/zod.js";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
+import { updateCardSchema } from "./types.js";
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   const prisma = new PrismaClient();
@@ -30,26 +30,22 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       for (const field of data.fieldsToDelete) {
         await tx.cardField.delete({
           where: {
-            cardId_authorId_name: {
+            cardId_fieldId: {
               cardId: data.id,
-              authorId: user.id,
-              name: field.name,
+              fieldId: field.id,
             },
           },
         });
       }
 
-      for (const newField of data.fieldsToUpsert) {
+      for (const field of data.fieldsToUpsert) {
         await tx.field.upsert({
           where: {
-            authorId_name: {
-              authorId: user.id,
-              name: newField.name,
-            },
+            id: field.id,
           },
           update: {},
           create: {
-            name: newField.name,
+            name: field.name,
             author: {
               connect: {
                 id: user.id,
@@ -60,20 +56,18 @@ export async function update(req: Request, res: Response, next: NextFunction) {
 
         await tx.cardField.upsert({
           where: {
-            cardId_authorId_name: {
+            cardId_fieldId: {
               cardId: data.id,
-              authorId: user.id,
-              name: newField.name,
+              fieldId: field.id,
             },
           },
           update: {
-            value: newField.value,
+            value: field.value,
           },
           create: {
             cardId: data.id,
-            authorId: user.id,
-            name: newField.name,
-            value: newField.value,
+            fieldId: field.id,
+            value: field.value,
           },
         });
       }

@@ -17,11 +17,11 @@ export async function deleteMany(
     if (!incoming.success) {
       throw new BadRequest("Incorrect data was received");
     }
-    const names = incoming.data.names;
+    const ids = incoming.data.ids;
 
     await prisma.field.deleteMany({
       where: {
-        name: { in: names },
+        id: { in: ids },
         author: user,
       },
     });

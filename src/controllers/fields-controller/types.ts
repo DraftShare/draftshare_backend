@@ -1,21 +1,39 @@
 import { z } from "zod";
-import { fieldNameSchema } from "../../types/zod.js";
 
-const fieldSchema = z.object({
-  name: z.string(),
+const fieldIdSchema = z.number();
+const fieldNameSchema = z.string();
+const fieldValueSchema = z.string();
+
+export const fieldSchema = z.object({
+  id: fieldIdSchema,
+  name: fieldNameSchema,
+  value: fieldValueSchema,
 });
 
-export const addFieldSchema = z.object({
-  fields: z.array(fieldSchema),
+const addFieldSchema = z.object({
+  name: z.string(),
+});
+export const addFieldsSchema = z.object({
+  fields: z.array(addFieldSchema),
 });
 
 export const deleteFieldsSchema = z.object({
-  names: z.array(fieldNameSchema),
+  ids: z.array(fieldIdSchema),
 });
 
 export const updateFieldsSchema = z.array(
   z.object({
-    oldName: fieldNameSchema,
-    newName: fieldNameSchema,
+    id: fieldIdSchema,
+    name: fieldNameSchema,
   })
 );
+
+export const upsertAndDeleteSchema = z.object({
+  fieldsToDelete: z.array(fieldIdSchema),
+  fieldsToUpsert: z.array(
+    z.object({
+      id: z.optional(fieldIdSchema),
+      name: fieldNameSchema,
+    })
+  ),
+});

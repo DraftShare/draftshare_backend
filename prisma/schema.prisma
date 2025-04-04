@@ -8,11 +8,12 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  tgId     String     @unique
+  id           Int            @id @default(autoincrement())
+  tgId         String         @unique
   // username String  @unique
-  cards    Card[]
-  fields   Field[]
+  cards        Card[]
+  fields       Field[]
+  setsOfFields SetOfFields[]
 }
 
 model Card {
@@ -23,21 +24,32 @@ model Card {
 }
 
 model Field {
-  name     String
-  author   User        @relation(fields: [authorId], references: [id])
-  authorId Int
-  cards    CardField[]
+  id           Int            @id @default(autoincrement())
+  name         String
+  author       User           @relation(fields: [authorId], references: [id])
+  authorId     Int
+  cards        CardField[]
+  setsOfFields SetOfFields[]
 
-  @@id([authorId, name])
+  @@unique([name, authorId])
 }
 
 model CardField {
-  card     Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  cardId   Int
-  field    Field  @relation(fields: [authorId, name], references: [authorId, name], onDelete: Cascade)
-  authorId Int
-  name     String
-  value    String
+  card    Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId  Int
+  field   Field  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  fieldId Int
+  value   String
 
-  @@id([cardId, authorId, name])
+  @@id([cardId, fieldId])
+}
+
+model SetOfFields {
+  id       Int     @id @default(autoincrement())
+  name     String
+  author   User    @relation(fields: [authorId], references: [id])
+  authorId Int
+  fields   Field[]
+
+  @@unique([name, authorId])
 }

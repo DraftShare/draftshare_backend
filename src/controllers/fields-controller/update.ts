@@ -18,13 +18,10 @@ export async function update(req: Request, res: Response, next: NextFunction) {
     for (let field of fields) {
       await prisma.field.update({
         where: {
-          authorId_name: {
-            authorId: user.id,
-            name: field.oldName,
-          },
+          id: field.id,
         },
         data: {
-          name: field.newName,
+          name: field.name,
         },
       });
     }

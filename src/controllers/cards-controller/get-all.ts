@@ -14,8 +14,13 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
       omit: { authorId: true },
       include: {
         fields: {
-          omit: {
-            cardId: true,
+          select: {
+            field: {
+              select: {
+                name: true,
+              },
+            },
+            value: true,
           },
         },
       },
@@ -33,9 +38,14 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
     };
 
     const result = cards.reduce((acc, card) => {
+      const fields = card.fields.map((field) => ({
+        value: field.value,
+        name: field.field.name,
+      }));
+
       acc[card.id] = {
         id: card.id,
-        fields: card.fields,
+        fields: fields,
       };
       return acc;
     }, {} as NormalizedData);
