@@ -25,9 +25,12 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
       });
 
       for (const field of data.fields) {
-        await tx.field.upsert({
+        const resultField = await tx.field.upsert({
           where: {
-            id: field.id,
+            name_authorId: {
+              name: field.name,
+              authorId: user.id,
+            },
           },
           update: {
             name: field.name,
@@ -45,13 +48,13 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
           data: {
             value: field.value,
             cardId: card.id,
-            fieldId: field.id,
+            fieldId: resultField.id,
           },
         });
       }
     });
 
-    res.status(201).json("ok");
+    res.status(201).send();
   } catch (error) {
     next(error);
   }

@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-const fieldIdSchema = z.number();
-const fieldNameSchema = z.string();
-const fieldValueSchema = z.string();
+export const fieldIdSchema = z.number();
+export const fieldNameSchema = z.string();
+export const fieldValueSchema = z.string();
 
 export const fieldSchema = z.object({
   id: fieldIdSchema,

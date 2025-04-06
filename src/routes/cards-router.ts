@@ -8,5 +8,5 @@ export const router = Router();
 
 router.get("/cards", getAll);
 router.post("/cards", addOne);
-router.patch("/cards", update);
+router.put("/cards", update);
 router.delete("/cards", deleteMany);

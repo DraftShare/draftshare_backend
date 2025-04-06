@@ -20,6 +20,13 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         where: {
           id: data.id,
         },
+        include: {
+          fields: {
+            include: {
+              field: true,
+            },
+          },
+        },
       });
       if (!card) {
         throw new BadRequest(
@@ -27,21 +34,29 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         );
       }
 
-      for (const field of data.fieldsToDelete) {
+      const newFieldNames = data.fields.map((field) => field.name);
+      const fieldsToDelete = card.fields.filter(
+        (field) => !new Set(newFieldNames).has(field.field.name)
+      );
+
+      for (const field of fieldsToDelete) {
         await tx.cardField.delete({
           where: {
             cardId_fieldId: {
               cardId: data.id,
-              fieldId: field.id,
+              fieldId: field.fieldId,
             },
           },
         });
       }
 
-      for (const field of data.fieldsToUpsert) {
-        await tx.field.upsert({
+      for (const field of data.fields) {
+        const resultField = await tx.field.upsert({
           where: {
-            id: field.id,
+            name_authorId: {
+              name: field.name,
+              authorId: user.id,
+            },
           },
           update: {},
           create: {
@@ -58,7 +73,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
           where: {
             cardId_fieldId: {
               cardId: data.id,
-              fieldId: field.id,
+              fieldId: resultField.id,
             },
           },
           update: {
@@ -66,13 +81,59 @@ export async function update(req: Request, res: Response, next: NextFunction) {
           },
           create: {
             cardId: data.id,
-            fieldId: field.id,
+            fieldId: resultField.id,
             value: field.value,
           },
         });
+
+        //====================
+
+        // for (const field of data.fieldsToDelete) {
+        //   await tx.cardField.delete({
+        //     where: {
+        //       cardId_fieldId: {
+        //         cardId: data.id,
+        //         fieldId: field.id,
+        //       },
+        //     },
+        //   });
+        // }
+
+        // for (const field of data.fieldsToUpsert) {
+        //   const resultField = await tx.field.upsert({
+        //     where: {
+        //       id: field.id,
+        //     },
+        //     update: {},
+        //     create: {
+        //       name: field.name,
+        //       author: {
+        //         connect: {
+        //           id: user.id,
+        //         },
+        //       },
+        //     },
+        //   });
+
+        //   await tx.cardField.upsert({
+        //     where: {
+        //       cardId_fieldId: {
+        //         cardId: data.id,
+        //         fieldId: resultField.id,
+        //       },
+        //     },
+        //     update: {
+        //       value: field.value,
+        //     },
+        //     create: {
+        //       cardId: data.id,
+        //       fieldId: resultField.id,
+        //       value: field.value,
+        //     },
+        //   });
       }
     });
-    res.status(200).json("ok");
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
