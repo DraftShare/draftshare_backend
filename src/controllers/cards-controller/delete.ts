@@ -26,7 +26,7 @@ export async function deleteMany(
       },
     });
 
-    res.status(204).json("");
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
