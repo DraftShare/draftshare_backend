@@ -3,9 +3,10 @@ import { getInitData } from "../controllers/authController.js";
 import { User } from "../model/schemas.js";
 import { BadRequest } from "../utils/errors.js";
 import { PrismaClient } from "@prisma/client";
+import gPrisma from "../../prisma/prisma-client.js"
 
 export const userMiddleware: RequestHandler = async (req, res, next) => {
-  const prisma = new PrismaClient();
+  const prisma = gPrisma;
 
   try {
     const initData = getInitData(res);

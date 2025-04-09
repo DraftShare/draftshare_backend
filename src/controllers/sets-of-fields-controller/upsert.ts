@@ -4,9 +4,10 @@ import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { upsertDataSchema } from "./types.js";
 import { text } from "stream/consumers";
+import gPrisma from "../../../prisma/prisma-client.js"
 
 export async function upsert(req: Request, res: Response, next: NextFunction) {
-  const prisma = new PrismaClient();
+  const prisma = gPrisma;
 
   try {
     const user = await getUser(res);

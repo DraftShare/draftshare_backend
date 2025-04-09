@@ -3,13 +3,14 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { deleteIdsSchema } from "./types.js";
+import gPrisma from "../../../prisma/prisma-client.js"
 
 export async function deleteMany(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const prisma = new PrismaClient();
+  const prisma = gPrisma;
 
   try {
     const user = await getUser(res);
