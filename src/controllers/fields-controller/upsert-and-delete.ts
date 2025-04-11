@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { upsertAndDeleteSchema } from "./types.js";
-import gPrisma from "../../../prisma/prisma-client.js"
+import gPrisma from "../../../prisma/prisma-client.js";
 
 export async function upsertAndDelete(
   req: Request,
@@ -25,7 +25,9 @@ export async function upsertAndDelete(
       fieldsToUpsert.length;
 
     if (hasDuplicates) {
-      throw new BadRequest("Incorrect data was received: the name field must be unique.");
+      throw new BadRequest(
+        "Incorrect data was received: the name field must be unique."
+      );
     }
 
     await prisma.$transaction(async (tx) => {
@@ -55,6 +57,14 @@ export async function upsertAndDelete(
           });
         }
       }
+
+      await tx.card.deleteMany({
+        where: {
+          fields: {
+            none: {},
+          },
+        },
+      });
     });
     const fields = await prisma.field.findMany({
       where: {

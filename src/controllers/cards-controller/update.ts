@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { updateCardSchema } from "./types.js";
-import gPrisma from "../../../prisma/prisma-client.js"
+import gPrisma from "../../../prisma/prisma-client.js";
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   const prisma = gPrisma;
@@ -132,6 +132,17 @@ export async function update(req: Request, res: Response, next: NextFunction) {
         //       value: field.value,
         //     },
         //   });
+      }
+
+      const cardWithFields = await tx.card.findUnique({
+        where: { id: data.id },
+        include: { fields: true },
+      });
+
+      if (cardWithFields && cardWithFields.fields.length === 0) {
+        await tx.card.delete({
+          where: { id: data.id },
+        });
       }
     });
     res.status(204).send();
