@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const setIdSchema = z.number();
+export const setIdSchema = z.number();
 
 export const upsertDataSchema = z.object({
   id: z.optional(setIdSchema),
@@ -9,3 +9,4 @@ export const upsertDataSchema = z.object({
 });
 
 export const deleteIdsSchema = z.array(setIdSchema);
+

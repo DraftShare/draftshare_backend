@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const fieldIdSchema = z.number();
-export const fieldNameSchema = z.string();
+export const fieldNameSchema = z
+  .string()
+  .refine((name) => name.trim().length > 0, "Field name cannot be empty");
 export const fieldValueSchema = z.string();
 
 export const fieldSchema = z.object({
@@ -11,7 +13,7 @@ export const fieldSchema = z.object({
 });
 
 const addFieldSchema = z.object({
-  name: z.string(),
+  name: fieldNameSchema,
 });
 export const addFieldsSchema = z.object({
   fields: z.array(addFieldSchema),

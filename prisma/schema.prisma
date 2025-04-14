@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  tgId         String         @unique
+  id           Int           @id @default(autoincrement())
+  tgId         String        @unique
   // username String  @unique
   cards        Card[]
   fields       Field[]
@@ -24,9 +24,9 @@ model Card {
 }
 
 model Field {
-  id           Int            @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   name         String
-  author       User           @relation(fields: [authorId], references: [id])
+  author       User          @relation(fields: [authorId], references: [id])
   authorId     Int
   cards        CardField[]
   setsOfFields SetOfFields[]
@@ -45,11 +45,12 @@ model CardField {
 }
 
 model SetOfFields {
-  id       Int     @id @default(autoincrement())
-  name     String
-  author   User    @relation(fields: [authorId], references: [id])
-  authorId Int
-  fields   Field[]
+  id         Int     @id @default(autoincrement())
+  name       String
+  author     User    @relation(fields: [authorId], references: [id])
+  authorId   Int
+  fields     Field[]
+  defaultSet Boolean @default(false) // guarantee of a unique true to the author via raw sql
 
   @@unique([name, authorId])
 }
