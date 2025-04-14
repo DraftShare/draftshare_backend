@@ -4,7 +4,7 @@ import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { upsertDataSchema } from "./types.js";
 import { text } from "stream/consumers";
-import gPrisma from "../../../prisma/prisma-client.js"
+import gPrisma from "../../../prisma/prisma-client.js";
 
 export async function upsert(req: Request, res: Response, next: NextFunction) {
   const prisma = gPrisma;
@@ -31,7 +31,7 @@ export async function upsert(req: Request, res: Response, next: NextFunction) {
           );
         }
 
-        await upsertFieldsForSet(tx, user.id, fields, id);
+        await upsertFieldsForSet(tx, user.id, fields, id, setName);
       } else {
         const newSet = await tx.setOfFields.create({
           data: {
@@ -40,7 +40,7 @@ export async function upsert(req: Request, res: Response, next: NextFunction) {
           },
         });
 
-        await upsertFieldsForSet(tx, user.id, fields, newSet.id);
+        await upsertFieldsForSet(tx, user.id, fields, newSet.id, setName);
         setId = newSet.id;
       }
     });
@@ -64,7 +64,8 @@ async function upsertFieldsForSet(
   tx: Prisma.TransactionClient,
   userId: number,
   fields: string[],
-  setId: number
+  setId: number,
+  setName: string
 ) {
   const currentSet = await tx.setOfFields.findUnique({
     where: { id: setId },
@@ -85,6 +86,13 @@ async function upsertFieldsForSet(
   const fieldsToAdd = newFieldNames.filter(
     (name) => !currentFieldNames.includes(name)
   );
+
+  await tx.setOfFields.update({
+    where: { id: setId },
+    data: {
+      name: setName,
+    },
+  });
 
   for (const fieldName of fieldsToRemove) {
     await tx.setOfFields.update({
