@@ -11,12 +11,18 @@ const port = process.env.PORT || 7829;
 
 app.use(express.json());
 
+let origin = undefined;
+if (process.env.NODE_ENV === "development" && process.env.CORS_ORIGIN_DEV) {
+  origin = [process.env.CORS_ORIGIN_DEV];
+} else if (
+  process.env.NODE_ENV === "production" &&
+  process.env.CORS_ORIGIN_PROD
+) {
+  origin = [process.env.CORS_ORIGIN_PROD];
+}
+
 const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://172.29.64.119:3000",
-    "https://flying-squirrel.duckdns.org",
-  ],
+  origin: origin,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
