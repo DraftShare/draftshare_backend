@@ -7,7 +7,7 @@ import { userMiddleware } from "./middlewares/user.js";
 import { router } from "./routes/index.js";
 
 const app = express();
-const port = process.env.PORT || 7829;
+const port = process.env.NODE_DOCKER_PORT;
 
 app.use(express.json());
 
