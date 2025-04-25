@@ -1,60 +1,34 @@
-
 services:
-  mongo1:
-    container_name: mongo1
-    image: mongo
+  postgresdb:
+    image: postgres:alpine
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - POSTGRES_USER=$POSTGRESDB_USER
+      - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
+      - POSTGRES_DB=$POSTGRESDB_DATABASE
+    ports:
+      - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
     volumes:
-      - ~/mongors/data1:/data/db
-      - ./rs-init.sh:/scripts/rs-init.sh
-    networks:
-      - mongors-network
-    ports:
-      - 27021:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+      - db:/var/lib/postgres
 
-  mongo2:
-    container_name: mongo2
-    image: mongo
-    volumes:
-      - ~/mongors/data2:/data/db
-    networks:
-      - mongors-network
-    ports:
-      - 27022:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
-
-  mongo3:
-    container_name: mongo3
-    image: mongo
-    volumes:
-      - ~/mongors/data3:/data/db
-    networks:
-      - mongors-network
-    ports:
-      - 27023:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
-
-  nodejs:
-    container_name: nodejs
-    build: .
-    # volumes:
-    #   - .:/usr/src/app
-    #   - /usr/src/app/node_modules
-    env_file: ".env"
-
-    networks:
-      - mongors-network
-    ports:
-      - 7829:7829
+  app:
     depends_on:
-      - mongo1
-      - mongo2
-      - mongo3
-    restart: always
+      - postgresdb
+    build: .
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRESDB_USER}:${POSTGRESDB_ROOT_PASSWORD}@postgresdb:${POSTGRESDB_DOCKER_PORT}/${POSTGRESDB_DATABASE}
+      - DB_HOST=postgresdb
+      - DB_USER=$POSTGRESDB_USER
+      - DB_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
+      - DB_NAME=$POSTGRESDB_DATABASE
+      - DB_PORT=$POSTGRESDB_DOCKER_PORT
+    stdin_open: true
+    tty: true
 
-networks:
-  mongors-network:
-    driver: bridge
+volumes:
+  db:

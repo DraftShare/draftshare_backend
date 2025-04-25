@@ -1,15 +1,16 @@
 FROM node:lts-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-RUN mkdir -p /usr/src/app/logs
+# Устанавливаем зависимости Prisma
+RUN apk add --no-cache openssl
 
-COPY package*.json ./
+# Копируем файлы зависимостей первыми для кэширования
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+
 
 RUN npm install
-
 COPY . .
-
-EXPOSE 8081
-
-CMD ["npm", "run", "start"]
+# Команда для запуска приложения с миграциями
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
