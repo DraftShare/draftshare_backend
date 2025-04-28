@@ -2,7 +2,7 @@ services:
   postgresdb:
     image: postgres:alpine
     restart: unless-stopped
-    env_file: ./.env
+    env_file: .env
     environment:
       - POSTGRES_USER=$POSTGRESDB_USER
       - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
@@ -15,20 +15,11 @@ services:
   app:
     depends_on:
       - postgresdb
-    build: .
+    image: ghcr.io/DraftShare/draftshare_backend:latest
     restart: unless-stopped
-    env_file: ./.env
+    env_file: .env
     ports:
       - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRESDB_USER}:${POSTGRESDB_ROOT_PASSWORD}@postgresdb:${POSTGRESDB_DOCKER_PORT}/${POSTGRESDB_DATABASE}
-      - DB_HOST=postgresdb
-      - DB_USER=$POSTGRESDB_USER
-      - DB_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
-      - DB_NAME=$POSTGRESDB_DATABASE
-      - DB_PORT=$POSTGRESDB_DOCKER_PORT
-    stdin_open: true
-    tty: true
 
 volumes:
   db:
