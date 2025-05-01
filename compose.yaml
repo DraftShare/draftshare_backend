@@ -10,16 +10,15 @@ services:
     ports:
       - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
     volumes:
-      - db:/var/lib/postgres
+      - /opt/app/db_data:/var/lib/postgresql/data
 
   app:
     depends_on:
       - postgresdb
-    image: ghcr.io/DraftShare/draftshare_backend:latest
+    image: ghcr.io/draftshare/draftshare_backend:latest
     restart: unless-stopped
     env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRESDB_USER}:${POSTGRESDB_ROOT_PASSWORD}@postgresdb:${POSTGRESDB_DOCKER_PORT}/${POSTGRESDB_DATABASE}
     ports:
       - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
-
-volumes:
-  db:
