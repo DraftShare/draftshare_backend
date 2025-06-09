@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { BadRequest } from "../../utils/errors.js";
 import { getUser } from "../utils.js";
 import { addCardSchema } from "./types.js";
-import gPrisma from "../../../prisma/prisma-client.js"
+import gPrisma from "../../../prisma/prisma-client.js";
 
 export async function addOne(req: Request, res: Response, next: NextFunction) {
   const prisma = gPrisma;
@@ -26,6 +26,19 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
       });
 
       for (const field of data.fields) {
+        let optionsToSave: string[] = [];
+        if (field.type === "SELECT" || field.type === "MULTISELECT") {
+          if (
+            !field.options ||
+            !Array.isArray(field.options) ||
+            field.options.length === 0
+          ) {
+            throw new BadRequest(
+              "Options are required for SELECT and MULTISELECT fields"
+            );
+          }
+          optionsToSave = field.options;
+        }
         const resultField = await tx.field.upsert({
           where: {
             name_authorId: {
@@ -35,9 +48,13 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
           },
           update: {
             name: field.name,
+            type: field.type,
+            options: optionsToSave,
           },
           create: {
             name: field.name,
+            type: field.type,
+            options: optionsToSave,
             author: {
               connect: {
                 id: user.id,
@@ -45,13 +62,32 @@ export async function addOne(req: Request, res: Response, next: NextFunction) {
             },
           },
         });
-        await tx.cardField.create({
-          data: {
-            value: field.value,
-            cardId: card.id,
-            fieldId: resultField.id,
-          },
-        });
+        if (field.type === "MULTISELECT") {
+          const cardField = await tx.cardField.create({
+            data: {
+              cardId: card.id,
+              fieldId: resultField.id,
+              value: "",
+            },
+          });
+          for (const value of field.value) {
+            await tx.cardFieldValue.create({
+              data: {
+                cardId: card.id,
+                fieldId: resultField.id,
+                value,
+              },
+            });
+          }
+        } else {
+          await tx.cardField.create({
+            data: {
+              value: field.value[0],
+              cardId: card.id,
+              fieldId: resultField.id,
+            },
+          });
+        }
       }
     });
 

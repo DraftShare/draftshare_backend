@@ -12,44 +12,39 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
       where: {
         author: user,
       },
-      omit: { authorId: true },
       include: {
         fields: {
           select: {
+            value: true,
+            values: true,
             field: {
               select: {
+                id: true,
                 name: true,
+                type: true,
+                options: true,
               },
             },
-            value: true,
           },
         },
       },
     });
 
-    type DataItem = {
-      id: number;
-      fields: {
-        name: string;
-        value: string;
-      }[];
-    };
-    type NormalizedData = {
-      [key: string]: DataItem;
-    };
-
     const result = cards.reduce((acc, card) => {
       const fields = card.fields.map((field) => ({
-        value: field.value,
+        id: field.field.id,
         name: field.field.name,
+        type: field.field.type,
+        options: field.field.options && field.field.options.length > 0 ? field.field.options : undefined,
+        value: field.field.type === "MULTISELECT" ? field.values.map((v) => v.value) : [field.value],
+        // values: field.values.map((v) => v.value),
       }));
-
-      acc[card.id] = {
+      acc[String(card.id)] = {
         id: card.id,
-        fields: fields,
+        fields,
       };
       return acc;
-    }, {} as NormalizedData);
+    }, {} as Record<string, any>);
 
     res.json(result);
   } catch (error) {

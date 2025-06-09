@@ -31,11 +31,10 @@ export async function upsertAndDelete(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Удаление полей
       for (const fieldId of fieldsToDelete) {
         await tx.field.delete({
-          where: {
-            id: fieldId,
-          },
+          where: { id: fieldId },
         });
       }
 
@@ -45,14 +44,24 @@ export async function upsertAndDelete(
             where: { id: field.id },
             data: {
               name: field.name,
+              type: field.type,
               author: { connect: { id: user.id } },
+              options:
+                (field.type === "SELECT" || field.type === "MULTISELECT") && field.options
+                  ? field.options
+                  : [],
             },
           });
         } else {
           await tx.field.create({
             data: {
               name: field.name,
+              type: field.type,
               author: { connect: { id: user.id } },
+              options:
+                (field.type === "SELECT" || field.type === "MULTISELECT") && field.options
+                  ? field.options
+                  : [],
             },
           });
         }
@@ -66,13 +75,13 @@ export async function upsertAndDelete(
         },
       });
     });
+
+    // Возврат актуальных полей
     const fields = await prisma.field.findMany({
       where: {
         author: user,
       },
-      omit: { authorId: true },
     });
-
     res.status(200).json(fields);
   } catch (error) {
     next(error);

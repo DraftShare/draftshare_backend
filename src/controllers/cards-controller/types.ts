@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  fieldIdSchema,
-  fieldNameSchema,
-  fieldSchema,
-  fieldValueSchema,
-} from "../fields-controller/types.js";
+import { fieldIdSchema, fieldNameSchema } from "../fields-controller/types.js";
 
 const cardIdShcema = z.number();
 
@@ -12,7 +7,12 @@ export const addCardSchema = z.object({
   fields: z.array(
     z.object({
       name: fieldNameSchema,
-      value: fieldValueSchema,
+      value: z.array(z.string()),
+      // value: z.union([z.string(), z.null()]),
+      // values: z.array(z.string()),
+      type: z.enum(["INPUT", "TEXTAREA", "SELECT", "MULTISELECT"]),
+      options: z.optional(z.array(z.string())),
+      id: z.optional(z.number()),
     })
   ),
 });
@@ -34,7 +34,9 @@ export const updateCardSchema = z.object({
   fields: z.array(
     z.object({
       name: fieldNameSchema,
-      value: fieldValueSchema,
+      value: z.array(z.string()),
+      // value: z.union([z.string(), z.null()]),
+      // values: z.array(z.string()),
     })
   ),
 });
@@ -43,4 +45,4 @@ export const deleteCardsSchema = z.object({
   ids: z.array(cardIdShcema),
 });
 
-export type field = z.infer<typeof fieldSchema>;
+// export type field = z.infer<typeof fieldSchema>;

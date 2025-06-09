@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -23,13 +24,22 @@ model Card {
   fields   CardField[]
 }
 
+enum FieldType {
+  INPUT
+  TEXTAREA
+  SELECT
+  MULTISELECT
+}
+
 model Field {
   id           Int           @id @default(autoincrement())
   name         String
+  type         FieldType     @default(INPUT)
   author       User          @relation(fields: [authorId], references: [id])
   authorId     Int
   cards        CardField[]
   setsOfFields SetOfFields[]
+  options      String[]
 
   @@unique([name, authorId])
 }
@@ -39,9 +49,20 @@ model CardField {
   cardId  Int
   field   Field  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
   fieldId Int
-  value   String
+  value   String?
+  values  CardFieldValue[] // связь с множественными значениями
 
   @@id([cardId, fieldId])
+  @@unique([cardId, fieldId])
+}
+
+model CardFieldValue {
+  cardField CardField @relation(fields: [cardId, fieldId], references: [cardId, fieldId])
+  cardId    Int
+  fieldId   Int
+  value     String
+
+  @@id([cardId, fieldId, value])
 }
 
 model SetOfFields {

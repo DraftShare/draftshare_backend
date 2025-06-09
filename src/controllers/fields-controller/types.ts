@@ -4,13 +4,14 @@ export const fieldIdSchema = z.number();
 export const fieldNameSchema = z
   .string()
   .refine((name) => name.trim().length > 0, "Field name cannot be empty");
-export const fieldValueSchema = z.string();
+// export const fieldValueSchema = z.union([z.string(), z.array(z.string())]);
+const typesOfFields = z.enum(["INPUT", "TEXTAREA", "SELECT", "MULTISELECT"]);
 
-export const fieldSchema = z.object({
-  id: fieldIdSchema,
-  name: fieldNameSchema,
-  value: fieldValueSchema,
-});
+// export const fieldSchema = z.object({
+//   id: fieldIdSchema,
+//   name: fieldNameSchema,
+//   value: fieldValueSchema,
+// });
 
 const addFieldSchema = z.object({
   name: fieldNameSchema,
@@ -36,6 +37,8 @@ export const upsertAndDeleteSchema = z.object({
     z.object({
       id: z.optional(fieldIdSchema),
       name: fieldNameSchema,
+      type: typesOfFields,
+      options: z.optional(z.array(z.string())),
     })
   ),
 });

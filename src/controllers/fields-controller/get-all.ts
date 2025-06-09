@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { getUser } from "../utils.js";
-import gPrisma from "../../../prisma/prisma-client.js"
+import gPrisma from "../../../prisma/prisma-client.js";
 
 export async function getAll(req: Request, res: Response, next: NextFunction) {
   const prisma = gPrisma;
@@ -13,7 +13,6 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
       where: {
         author: user,
       },
-      omit: { authorId: true },
     });
 
     res.json(fields);

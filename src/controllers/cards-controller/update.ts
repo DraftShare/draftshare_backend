@@ -70,68 +70,58 @@ export async function update(req: Request, res: Response, next: NextFunction) {
           },
         });
 
-        await tx.cardField.upsert({
-          where: {
-            cardId_fieldId: {
+        if (field.values && field.values.length > 0) { // MULTISELECT
+          await tx.cardField.upsert({
+            where: {
+              cardId_fieldId: {
+                cardId: data.id,
+                fieldId: resultField.id,
+              },
+            },
+            update: {
+              value: "",
+            },
+            create: {
+              cardId: data.id,
+              fieldId: resultField.id,
+              value: "",
+            },
+          });
+          // Удаляем старые значения
+          await tx.cardFieldValue.deleteMany({
+            where: {
               cardId: data.id,
               fieldId: resultField.id,
             },
-          },
-          update: {
-            value: field.value,
-          },
-          create: {
-            cardId: data.id,
-            fieldId: resultField.id,
-            value: field.value,
-          },
-        });
-
-        //====================
-
-        // for (const field of data.fieldsToDelete) {
-        //   await tx.cardField.delete({
-        //     where: {
-        //       cardId_fieldId: {
-        //         cardId: data.id,
-        //         fieldId: field.id,
-        //       },
-        //     },
-        //   });
-        // }
-
-        // for (const field of data.fieldsToUpsert) {
-        //   const resultField = await tx.field.upsert({
-        //     where: {
-        //       id: field.id,
-        //     },
-        //     update: {},
-        //     create: {
-        //       name: field.name,
-        //       author: {
-        //         connect: {
-        //           id: user.id,
-        //         },
-        //       },
-        //     },
-        //   });
-
-        //   await tx.cardField.upsert({
-        //     where: {
-        //       cardId_fieldId: {
-        //         cardId: data.id,
-        //         fieldId: resultField.id,
-        //       },
-        //     },
-        //     update: {
-        //       value: field.value,
-        //     },
-        //     create: {
-        //       cardId: data.id,
-        //       fieldId: resultField.id,
-        //       value: field.value,
-        //     },
-        //   });
+          });
+          // Добавляем новые значения
+          for (const value of field.values) {
+            await tx.cardFieldValue.create({
+              data: {
+                cardId: data.id,
+                fieldId: resultField.id,
+                value,
+              },
+            });
+          }
+        } else { // остальные типы
+          await tx.cardField.upsert({
+            where: {
+              cardId_fieldId: {
+                cardId: data.id,
+                fieldId: resultField.id,
+              },
+            },
+            update: {
+              value: field.value ?? "",
+            },
+            create: {
+              cardId: data.id,
+              fieldId: resultField.id,
+              value: field.value ?? "",
+            },
+          });
+        }
       }
 
       const cardWithFields = await tx.card.findUnique({
