@@ -29,16 +29,8 @@ export const addCardSchema = z.object({
 //   ),
 // });
 
-export const updateCardSchema = z.object({
+export const updateCardSchema = addCardSchema.extend({
   id: cardIdShcema,
-  fields: z.array(
-    z.object({
-      name: fieldNameSchema,
-      value: z.array(z.string()),
-      // value: z.union([z.string(), z.null()]),
-      // values: z.array(z.string()),
-    })
-  ),
 });
 
 export const deleteCardsSchema = z.object({
